@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BroadcastWebhookService
   def self.call(event:, payload:)
     new(event: event, payload: payload).call
@@ -5,6 +7,8 @@ class BroadcastWebhookService
 
   def call
     WebhookEndpoint.find_each do |webhook_endpoint|
+      next unless webhook_endpoint.subscribed?(event)
+
       webhook_event = WebhookEvent.create!(
         webhook_endpoint: webhook_endpoint,
         event: event,

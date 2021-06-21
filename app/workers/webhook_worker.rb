@@ -1,7 +1,16 @@
-require 'http.rb'
+# frozen_string_literal: true
+
+require 'http'
 
 class WebhookWorker
   include Sidekiq::Worker
+
+  sidekiq_options retry: 10, dead: false
+  sidekiq_retry_in do |retry_count|
+    jitter = rand(30.seconds..10.minutes).to_i
+
+    (retry_count**5) + jitter
+  end
 
   def perform(webhook_event_id)
     webhook_event = WebhookEvent.find_by(id: webhook_event_id)
@@ -10,13 +19,11 @@ class WebhookWorker
     webhook_endpoint = webhook_event.webhook_endpoint
     return unless webhook_endpoint
 
+    return unless webhook_endpoint.subscribed?(webhook_event.event)
+
     response = post_query(webhook_event, webhook_endpoint)
 
-    webhook_event.update(response: {
-                           headers: response.headers.to_h,
-                           code: response.code.to_i,
-                           body: response.body.to_s
-                         })
+    webhook_event.update_response(response)
 
     raise FailedRequestError unless response.status.sucess?
   rescue HTTP::TimeoutError
