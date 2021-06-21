@@ -12,9 +12,15 @@ class WebhookWorker
 
     response = post_query(webhook_event, webhook_endpoint)
 
-    raise FailedRequestError unless response.status.sucess?
+    webhook_event.update(response: {
+                           headers: response.headers.to_h,
+                           code: response.code.to_i,
+                           body: response.body.to_s
+                         })
 
-    rescue HTTP::TimeoutError
+    raise FailedRequestError unless response.status.sucess?
+  rescue HTTP::TimeoutError
+    webhook_event.update(response: { error: 'TIMEOUT_ERROR' })
   end
 
   private
