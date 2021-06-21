@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_06_18_160702) do
+ActiveRecord::Schema.define(version: 2021_06_21_131545) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -27,6 +27,7 @@ ActiveRecord::Schema.define(version: 2021_06_18_160702) do
     t.text "payload", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.jsonb "response", default: {}
     t.index ["webhook_endpoint_id"], name: "index_webhook_events_on_webhook_endpoint_id"
   end
 
