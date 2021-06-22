@@ -1,24 +1,5 @@
-# README
+# Webhook System in Rails
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Implementation of a basic SaaS system for Ruby on Rails using Webhooks
 
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+This project is based in this article by [keygen](https://keygen.sh/blog/how-to-build-a-webhook-system-in-rails-using-sidekiq/).
