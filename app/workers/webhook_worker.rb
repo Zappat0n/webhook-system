@@ -19,13 +19,19 @@ class WebhookWorker
     webhook_endpoint = webhook_event.webhook_endpoint
     return unless webhook_endpoint
 
-    return unless webhook_endpoint.subscribed?(webhook_event.event)
+    return unless webhook_endpoint.subscribed?(webhook_event.event) && webhook_endpoint.enabled?
 
     response = post_query(webhook_event, webhook_endpoint)
 
     webhook_event.update_response(response)
 
     raise FailedRequestError unless response.status.sucess?
+  rescue OpenSSL::SSL::SSLError
+    webhook_event.update(response: { error: 'TLS_ERROR' })
+    raise FailedRequestError
+  rescue HTTP::ConnectionError
+    webhook_event.update(response: { error: 'CONNECTION_ERROR' })
+    webhook_endpoint.disable!
   rescue HTTP::TimeoutError
     webhook_event.update(response: { error: 'TIMEOUT_ERROR' })
   end
