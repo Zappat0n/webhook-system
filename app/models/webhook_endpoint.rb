@@ -6,7 +6,13 @@ class WebhookEndpoint < ApplicationRecord
   validates :subscriptions, length: { minimum: 1 }, presence: true
   validates :url, presence: true
 
+  scope :enabled, -> { where(enabled: true) }
+
   def subscribed?(event)
     (subscriptions & ['*', event]).any?
+  end
+
+  def disable!
+    update!(enabled: false)
   end
 end
