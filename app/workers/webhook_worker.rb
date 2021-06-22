@@ -5,6 +5,8 @@ require 'http'
 class WebhookWorker
   include Sidekiq::Worker
 
+  EXCEPTIONS = [OpenSSL::SSL::SSLError, HTTP::ConnectionError, HTTP::TimeoutError].freeze
+
   sidekiq_options retry: 10, dead: false
   sidekiq_retry_in do |retry_count|
     jitter = rand(30.seconds..10.minutes).to_i
@@ -26,6 +28,14 @@ class WebhookWorker
     webhook_event.update_response(response)
 
     raise FailedRequestError unless response.status.sucess?
+  rescue *EXCEPTIONS => e
+    rescue_perform(e)
+  end
+
+  private
+
+  def rescue_perform(exception)
+    raise exception
   rescue OpenSSL::SSL::SSLError
     webhook_event.update(response: { error: 'TLS_ERROR' })
     raise FailedRequestError
@@ -35,8 +45,6 @@ class WebhookWorker
   rescue HTTP::TimeoutError
     webhook_event.update(response: { error: 'TIMEOUT_ERROR' })
   end
-
-  private
 
   def post_query(webhook_event, webhook_endpoint)
     HTTP.timeout(30).headers(
