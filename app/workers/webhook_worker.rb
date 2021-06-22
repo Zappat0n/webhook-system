@@ -29,12 +29,12 @@ class WebhookWorker
 
     raise FailedRequestError unless response.status.sucess?
   rescue *EXCEPTIONS => e
-    rescue_perform(e)
+    rescue_perform(e, webhook_event, webhook_endpoint)
   end
 
   private
 
-  def rescue_perform(exception)
+  def rescue_perform(exception, webhook_event, webhook_endpoint)
     raise exception
   rescue OpenSSL::SSL::SSLError
     webhook_event.update(response: { error: 'TLS_ERROR' })
